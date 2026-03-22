@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUAV Comunicación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#0A7C8C;--primary-dark:#075F6C;--primary-light:#E6F4F6;
+  --bg:#EFF3F7;--white:#FFFFFF;--text:#192B3A;--text-light:#5C7589;
+  --radius:18px;--shadow:0 3px 16px rgba(0,0,0,0.09);--shadow-lg:0 8px 36px rgba(0,0,0,0.14);
+  --sidebar:280px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+
+/* ════════════════════════════════
+   DESKTOP LAYOUT SHELL
+════════════════════════════════ */
+.app-shell{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#0A7C8C 0%,#0B5E72 100%);
+  color:#fff;padding:0 22px;height:62px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 3px 14px rgba(0,0,0,0.25);
+  position:sticky;top:0;z-index:100;flex-shrink:0;
+}
+.header-left{display:flex;align-items:center;gap:12px;}
+.back-btn{
+  background:rgba(255,255,255,0.22);border:none;color:#fff;
+  width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;
+  display:none;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;
+}
+.back-btn:hover{background:rgba(255,255,255,0.35);}
+.back-btn.visible{display:flex;}
+.header-brand{display:flex;align-items:center;gap:10px;}
+.header-title{font-size:21px;font-weight:900;letter-spacing:-.5px;}
+.header-sub{font-size:11px;font-weight:600;opacity:.65;margin-top:1px;}
+.header-logo{font-size:30px;}
+
+/* ── BODY LAYOUT ── */
+.body-wrap{display:flex;flex:1;min-height:0;}
+
+/* ── SIDEBAR (desktop only) ── */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;background:var(--white);
+  border-right:1px solid rgba(0,0,0,0.08);
+  display:flex;flex-direction:column;overflow-y:auto;
+  position:sticky;top:62px;height:calc(100vh - 62px);
+}
+.sidebar-inner{padding:16px 14px;}
+.sidebar-section-label{
+  font-size:10px;font-weight:800;color:var(--text-light);
+  text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* lang grid in sidebar */
+.lang-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:18px;}
+.lang-btn{
+  background:var(--bg);border:2.5px solid transparent;border-radius:11px;
+  padding:8px 4px;cursor:pointer;text-align:center;transition:all .18s;font-family:'Nunito',sans-serif;
+}
+.lang-btn.active{background:var(--primary-light);border-color:var(--primary);}
+.lang-btn .flag{font-size:18px;display:block;line-height:1.2;}
+.lang-btn .lname{font-size:9px;font-weight:800;color:var(--text-light);margin-top:2px;line-height:1.1;}
+.lang-btn.active .lname{color:var(--primary);}
+
+/* sidebar categories */
+.sidebar-cats{display:flex;flex-direction:column;gap:5px;}
+.sidebar-cat{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:11px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;
+}
+.sidebar-cat:hover{background:var(--bg);}
+.sidebar-cat.active{background:var(--primary-light);border-left-color:var(--primary);}
+.sidebar-cat-icon{font-size:20px;flex-shrink:0;width:26px;text-align:center;}
+.sidebar-cat-name{font-size:12.5px;font-weight:800;color:var(--text);line-height:1.2;}
+.sidebar-cat-sub{font-size:10.5px;color:var(--text-light);font-weight:600;}
+
+/* ── MAIN CONTENT ── */
+.main-content{flex:1;min-width:0;overflow-y:auto;}
+
+/* ── MOBILE PANEL (hidden on desktop) ── */
+.mobile-panel{display:none;}
+
+/* ── INFO BAR ── */
+.info-bar{
+  background:var(--primary-light);border-radius:12px;
+  margin:14px 18px 0;padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.info-bar-text{font-size:12px;color:var(--primary-dark);font-weight:700;line-height:1.4;}
+
+/* ── HOME: welcome card ── */
+.welcome-card{
+  background:var(--white);border-radius:var(--radius);margin:14px 18px;
+  padding:22px 20px;box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:16px;
+}
+.welcome-card-icon{font-size:44px;flex-shrink:0;}
+.welcome-card-title{font-size:17px;font-weight:900;color:var(--text);}
+.welcome-card-text{font-size:12px;color:var(--text-light);margin-top:4px;font-weight:600;line-height:1.5;}
+
+/* ── CATEGORIES GRID (main area) ── */
+.section-title{font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.7px;padding:6px 18px 8px;}
+.categories-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 18px;}
+.category-card{
+  background:var(--white);border-radius:var(--radius);
+  padding:20px 14px 18px;cursor:pointer;box-shadow:var(--shadow);
+  transition:transform .18s,box-shadow .18s;text-align:center;
+  border-top:4px solid;position:relative;overflow:hidden;
+}
+.category-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+.cat-icon{font-size:36px;margin-bottom:9px;display:block;}
+.cat-name{font-size:12.5px;font-weight:900;color:var(--text);line-height:1.25;}
+.cat-sublang{font-size:10.5px;color:var(--text-light);margin-top:3px;font-weight:600;}
+.cat-badge{position:absolute;top:8px;right:8px;background:var(--bg);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:800;color:var(--text-light);}
+
+/* ── PHRASES PANEL (desktop: right side) ── */
+.phrases-wrap{padding:0;}
+.phrases-header{
+  background:var(--white);padding:18px 20px 16px;
+  border-bottom:1px solid rgba(0,0,0,0.07);
+  display:flex;align-items:center;gap:14px;
+}
+.cat-big-icon{font-size:46px;flex-shrink:0;}
+.phrases-header h2{font-size:22px;font-weight:900;}
+.phrases-header .cat-desc{font-size:12px;color:var(--text-light);margin-top:3px;font-weight:600;}
+.phrases-list{padding:12px 18px;display:flex;flex-direction:column;gap:9px;}
+.phrase-card{
+  background:var(--white);border-radius:14px;padding:14px 16px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.06);cursor:pointer;
+  transition:transform .18s,box-shadow .18s;
+  display:flex;align-items:center;gap:12px;border-left:4px solid;
+}
+.phrase-card:hover{transform:translateX(4px);box-shadow:var(--shadow);}
+.phrase-icon{font-size:28px;flex-shrink:0;width:38px;text-align:center;}
+.phrase-texts{flex:1;min-width:0;}
+.phrase-es{font-size:11px;color:var(--text-light);font-weight:700;}
+.phrase-lang{font-size:15px;font-weight:800;color:var(--text);margin-top:3px;line-height:1.3;}
+.phrase-arrow{color:var(--text-light);font-size:14px;flex-shrink:0;}
+
+/* ── DETAIL MODAL (desktop: centered; mobile: bottom sheet) ── */
+.detail-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:300;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);animation:fadein .2s ease;
+}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.detail-modal{
+  background:var(--white);border-radius:22px;
+  padding:0 24px 28px;
+  width:min(560px,95vw);max-height:88vh;overflow-y:auto;
+  animation:scaleIn .25s cubic-bezier(.22,.61,.36,1);
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+@keyframes scaleIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+.modal-drag{display:none;}
+.modal-close-row{display:flex;justify-content:flex-end;padding-top:16px;margin-bottom:4px;}
+.modal-close{
+  background:var(--bg);border:none;color:var(--text-light);
+  width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .2s;
+}
+.modal-close:hover{background:#DDE4EA;}
+.modal-icon{font-size:54px;text-align:center;display:block;margin-bottom:14px;}
+.modal-es{background:var(--bg);border-radius:12px;padding:10px 14px;margin-bottom:11px;}
+.modal-label{font-size:10px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;}
+.modal-es-text{font-size:15px;font-weight:700;color:var(--text);margin-top:4px;}
+.modal-lang-section{border:2.5px solid var(--primary);border-radius:16px;padding:14px 16px;margin-bottom:14px;}
+.modal-lang-label{font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;}
+.modal-lang-text{font-size:26px;font-weight:900;color:var(--text);margin-top:7px;line-height:1.35;}
+.audio-btn{
+  width:100%;background:var(--primary);color:#fff;
+  border:none;border-radius:13px;padding:16px;
+  font-size:16px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-family:'Nunito',sans-serif;transition:all .2s;margin-bottom:10px;
+}
+.audio-btn:hover{background:var(--primary-dark);transform:scale(1.01);}
+.audio-btn.playing{background:#1B9E5C;}
+.audio-btn.error{background:#C0392B;}
+.all-langs-btn{
+  width:100%;background:var(--bg);color:var(--text);
+  border:none;border-radius:12px;padding:12px;
+  font-size:13px;font-weight:800;cursor:pointer;
+  font-family:'Nunito',sans-serif;transition:background .2s;
+}
+.all-langs-btn:hover{background:#DDE4EA;}
+.all-langs-list{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.lang-row{display:flex;align-items:center;gap:11px;background:var(--bg);border-radius:12px;padding:10px 13px;}
+.lang-row-flag{font-size:18px;flex-shrink:0;}
+.lang-row-info{flex:1;min-width:0;}
+.lang-row-name{font-size:10px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;}
+.lang-row-text{font-size:13px;font-weight:800;color:var(--text);margin-top:2px;line-height:1.3;}
+.lang-audio{
+  background:var(--primary);color:#fff;border:none;border-radius:9px;
+  width:36px;height:36px;cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;
+}
+.lang-audio:hover{background:var(--primary-dark);}
+.lang-audio.playing{background:#1B9E5C;}
+.lang-audio.error{background:#C0392B;}
+
+/* voice status badge */
+.voice-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--bg);border-radius:20px;padding:4px 10px;
+  font-size:10px;font-weight:800;color:var(--text-light);margin-bottom:12px;
+}
+.voice-dot{width:7px;height:7px;border-radius:50%;background:#27AE60;flex-shrink:0;}
+.voice-dot.warn{background:#F39C12;}
+.voice-dot.off{background:#BDC3C7;}
+
+/* ═══ VIEWS ═══ */
+.view{display:none;}
+.view.active{display:block;}
+.rtl{direction:rtl;text-align:right;}
+.spacer{height:24px;}
+
+/* ════════════════════════════════
+   MOBILE OVERRIDES  (≤ 768px)
+════════════════════════════════ */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .mobile-panel{display:block;}
+
+  /* mobile lang selector */
+  .mobile-lang-selector{
+    background:var(--white);border-radius:var(--radius);
+    padding:13px 14px;margin:13px 13px 0;box-shadow:var(--shadow);
+  }
+  .mobile-lang-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+
+  .info-bar{margin:10px 13px 0;}
+  .welcome-card{margin:10px 13px;padding:14px 14px;}
+  .welcome-card-icon{font-size:34px;}
+  .welcome-card-title{font-size:14px;}
+  .welcome-card-text{font-size:11px;}
+  .section-title{padding:12px 13px 7px;}
+  .categories-grid{grid-template-columns:repeat(2,1fr);gap:10px;padding:0 13px;}
+  .category-card{padding:16px 12px 14px;}
+  .cat-icon{font-size:32px;margin-bottom:7px;}
+  .cat-name{font-size:12px;}
+  .phrases-list{padding:10px 13px;}
+  .phrases-header{padding:16px 14px 12px;}
+  .phrases-header h2{font-size:19px;}
+
+  /* bottom sheet on mobile */
+  .detail-overlay{align-items:flex-end;justify-content:stretch;}
+  .detail-modal{
+    border-radius:22px 22px 0 0;width:100%;max-height:92vh;
+    animation:slideUp .28s cubic-bezier(.22,.61,.36,1);
+    box-shadow:none;padding:0 18px 32px;
+  }
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-drag{display:block;width:44px;height:5px;background:#DDE4EA;border-radius:3px;margin:14px auto 10px;}
+  .modal-close-row{padding-top:0;}
+}
+
+/* desktop 3-col becomes 4 on wide */
+@media(min-width:1200px){
+  .categories-grid{grid-template-columns:repeat(4,1fr);}
+}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:#C8D3DC;border-radius:3px;}
+.footer{padding:18px 18px;text-align:center;font-size:11px;color:var(--text-light);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<!-- ══════════ HEADER ══════════ -->
+<div class="header">
+  <div class="header-left">
+    <button class="back-btn" id="backBtn" onclick="goBack()">&#8592;</button>
+    <div class="header-brand">
+      <div>
+        <div class="header-title">HUAV Comunicació</div>
+        <div class="header-sub">Comunicación Hospitalaria · Hospital Communication</div>
+      </div>
+    </div>
+  </div>
+  <div class="header-logo">🏥</div>
+</div>
+
+<div class="body-wrap">
+
+  <!-- ══════════ SIDEBAR (desktop) ══════════ -->
+  <div class="sidebar" id="desktopSidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-section-label">🌐 Idioma del paciente</div>
+      <div class="lang-grid" id="desktopLangGrid"></div>
+      <div class="sidebar-section-label" style="margin-top:4px">📂 Situaciones</div>
+      <div class="sidebar-cats" id="desktopSidebarCats"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ MAIN CONTENT ══════════ -->
+  <div class="main-content" id="mainContent">
+
+    <!-- ═══ HOME VIEW ═══ -->
+    <div class="view active" id="homeView">
+
+      <!-- mobile lang selector -->
+      <div class="mobile-panel">
+        <div class="mobile-lang-selector">
+          <div class="sidebar-section-label">🌐 Idioma del paciente · Patient Language</div>
+          <div class="mobile-lang-grid" id="mobileLangGrid"></div>
+        </div>
+      </div>
+
+      <div class="info-bar">
+        <span style="font-size:18px">💡</span>
+        <span class="info-bar-text" id="infoBarText">Selecciona el idioma del paciente y luego una situación</span>
+      </div>
+
+      <div class="welcome-card">
+        <span class="welcome-card-icon">🤝</span>
+        <div>
+          <div class="welcome-card-title">HUAV Comunicació</div>
+          <div class="welcome-card-text">Herramienta de comunicación para pacientes con barrera idiomática.<br>Toca una situación para ver las frases disponibles.</div>
+        </div>
+      </div>
+
+      <div class="section-title">Selecciona una situación</div>
+      <div class="categories-grid" id="categoriesGrid"></div>
+      <div class="footer">HUAV Comunicació · Hospital Universitari Arnau de Vilanova</div>
+      <div class="spacer"></div>
+    </div>
+
+    <!-- ═══ PHRASES VIEW ═══ -->
+    <div class="view" id="phrasesView">
+      <div class="phrases-header" id="phrasesHeader"></div>
+      <div class="phrases-list" id="phrasesList"></div>
+      <div class="spacer"></div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /body-wrap -->
+</div><!-- /app-shell -->
+
+<!-- ══════════ DETAIL MODAL ══════════ -->
+<div class="detail-overlay" id="detailOverlay" style="display:none" onclick="handleOverlayClick(event)">
+  <div class="detail-modal" id="detailModal">
+    <div class="modal-drag"></div>
+    <div class="modal-close-row">
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════════════ */
+const LANGS = [
+  { code:'ca', name:'Català',    flag:'🏴󠁥󠁳󠁣󠁴󠁿', short:'CAT', locales:['ca-ES','ca'] },
+  { code:'es', name:'Español',   flag:'🇪🇸', short:'ESP', locales:['es-ES','es-MX','es'] },
+  { code:'en', name:'English',   flag:'🇬🇧', short:'ENG', locales:['en-GB','en-US','en'] },
+  { code:'fr', name:'Français',  flag:'🇫🇷', short:'FR',  locales:['fr-FR','fr-BE','fr'] },
+  { code:'ar', name:'العربية',   flag:'🇸🇦', short:'عر',  locales:['ar-SA','ar-EG','ar-AE','ar-MA','ar'] },
+  { code:'ro', name:'Română',    flag:'🇷🇴', short:'RO',  locales:['ro-RO','ro'] },
+  { code:'zh', name:'中文',      flag:'🇨🇳', short:'中文', locales:['zh-CN','zh-TW','zh'] },
+  { code:'wo', name:'Wolof',     flag:'🇸🇳', short:'WO',  locales:['fr-SN','fr-FR','fr'] }
+];
+
+const SITUATIONS = [
+  { id:'urgencias', icon:'🚨', color:'#D63B3B',
+    names:{ ca:'Urgències', es:'Urgencias', en:'Emergencies', fr:'Urgences', ar:'طوارئ', ro:'Urgențe', zh:'急诊', wo:'Diiteef' },
+    phrases:[
+      { icon:'🆘', texts:{ ca:'Necessito ajuda urgent', es:'Necesito ayuda urgente', en:'I need urgent help', fr:"J'ai besoin d'aide urgente", ar:'أحتاج مساعدة عاجلة', ro:'Am nevoie de ajutor urgent', zh:'我需要紧急帮助', wo:'Maa ngi soxor ndimbal gannaaw' }},
+      { icon:'👨‍⚕️', texts:{ ca:'Truqui a un metge o infermer ara, si us plau', es:'Llame a un médico o enfermero ahora, por favor', en:'Please call a doctor or nurse now', fr:'Appelez un médecin ou infirmier maintenant', ar:'من فضلك اتصل بالطبيب أو الممرض الآن', ro:'Chemați un medic sau asistent acum, vă rog', zh:'请现在叫医生或护士来', wo:'Woole doktoor walla infirmier bi léegi léegi' }},
+      { icon:'🫁', texts:{ ca:'Tinc dificultat per respirar', es:'Tengo dificultad para respirar', en:'I have difficulty breathing', fr:"J'ai du mal à respirer", ar:'أجد صعوبة في التنفس', ro:'Am dificultăți în a respira', zh:'我呼吸困难', wo:'Dama am dëkk ci sutura' }},
+      { icon:'❤️', texts:{ ca:'Sento dolor al pit, potser al cor', es:'Siento dolor en el pecho, posiblemente en el corazón', en:'I feel chest pain, possibly my heart', fr:"J'ai une douleur dans la poitrine, peut-être au cœur", ar:'أشعر بألم في صدري، ربما في القلب', ro:'Am durere în piept, posibil la inimă', zh:'我感到胸痛，可能是心脏', wo:'Dama xelu ci suuf bi, dafa am ci xol bi' }},
+      { icon:'🤕', texts:{ ca:'He caigut i potser m\'he fet mal', es:'Me he caído y creo que me he lastimado', en:'I have fallen and may be injured', fr:"Je suis tombé et je pense m'être blessé", ar:'لقد سقطت وأعتقد أنني مصاب', ro:'Am căzut și cred că m-am rănit', zh:'我摔倒了，可能受伤了', wo:'Dama daw, maa ngi xam ne dama am xeex' }},
+      { icon:'😵', texts:{ ca:'Em trobo molt malament, estic molt dèbil', es:'Me encuentro muy mal, estoy muy débil', en:'I feel very ill and very weak', fr:'Je me sens très mal, je suis très faible', ar:'أشعر بتوعك شديد جداً وأنا ضعيف جداً', ro:'Mă simt foarte rău, sunt extrem de slab', zh:'我感觉非常不舒服，非常虚弱', wo:'Dama am dëkk lool, dama woyofal lool' }}
+    ]
+  },
+  { id:'dolor', icon:'😣', color:'#E07B2A',
+    names:{ ca:'Dolor', es:'Dolor', en:'Pain', fr:'Douleur', ar:'ألم', ro:'Durere', zh:'疼痛', wo:'Xelu' },
+    phrases:[
+      { icon:'🤢', texts:{ ca:'Tinc molt de dolor, és insoportable', es:'Tengo mucho dolor, es insoportable', en:'I am in a lot of pain, it is unbearable', fr:"J'ai très mal, c'est insupportable", ar:'أشعر بألم شديد جداً لا أستطيع تحمله', ro:'Am dureri mari, este insuportabil', zh:'我非常痛，无法忍受', wo:'Dama xelu lool, mënuma ko dëgël' }},
+      { icon:'📍', texts:{ ca:'El dolor és exactament aquí, en aquest lloc', es:'El dolor está exactamente aquí, en este lugar', en:'The pain is exactly here, in this place', fr:'La douleur est exactement ici, à cet endroit', ar:'الألم بالضبط هنا، في هذا المكان', ro:'Durerea este exact aici, în acest loc', zh:'疼痛就在这里，就是这个位置', wo:'Xelu bi fi rekk nekk, ci bëj bii' }},
+      { icon:'🔟', texts:{ ca:'El dolor és molt fort, un vuit o nou sobre deu', es:'El dolor es muy fuerte, un ocho o nueve sobre diez', en:'The pain is very strong, eight or nine out of ten', fr:'La douleur est très forte, huit ou neuf sur dix', ar:'الألم شديد جداً، ثمانية أو تسعة من عشرة', ro:'Durerea este foarte puternică, opt sau nouă din zece', zh:'疼痛非常剧烈，在八到九分之间（满分十分）', wo:'Xelu bi dafa tëgël lool, juróom ñett wala juróom ñeent ci fukk' }},
+      { icon:'⏱️', texts:{ ca:'El dolor és constant i no para gens', es:'El dolor es constante y no para en absoluto', en:'The pain is constant and does not stop at all', fr:"La douleur est constante et ne s'arrête pas du tout", ar:'الألم مستمر ولا يتوقف أبداً', ro:'Durerea este constantă și nu se oprește deloc', zh:'疼痛持续不断，完全不停止', wo:'Xelu bi dafay yëgël jennaak, duñu ko tax a dox' }},
+      { icon:'💊', texts:{ ca:'Necessito alguna cosa per al dolor, si us plau', es:'Necesito algo para el dolor, por favor', en:'I need something for the pain, please', fr:"J'ai besoin de quelque chose contre la douleur, s'il vous plaît", ar:'أحتاج شيئاً لتسكين الألم من فضلك', ro:'Am nevoie de ceva pentru durere, vă rog', zh:'请给我一些止痛药', wo:'Maa ngi soxor dara pour xelu bi, soxor' }},
+      { icon:'🔪', texts:{ ca:'El dolor és agut i punxant, com una punyalada', es:'El dolor es agudo y punzante, como una puñalada', en:'The pain is sharp and stabbing, like a knife', fr:'La douleur est aiguë et lancinante, comme un coup de couteau', ar:'الألم حاد وطاعن كالسكين', ro:'Durerea este ascuțită și înțepătoare, ca o înjunghiere', zh:'疼痛非常尖锐刺痛，像被刀刺一样', wo:'Xelu bi dafa am xam-xam, bu tëgël bu neex' }}
+    ]
+  },
+  { id:'sintomas', icon:'🤒', color:'#7C4DB5',
+    names:{ ca:'Símptomes', es:'Síntomas', en:'Symptoms', fr:'Symptômes', ar:'أعراض', ro:'Simptome', zh:'症状', wo:'Xam-xam bu xël' },
+    phrases:[
+      { icon:'🌡️', texts:{ ca:'Tinc febre, em trobo escaldat', es:'Tengo fiebre, me siento muy acalorado', en:'I have a fever, I feel very hot', fr:"J'ai de la fièvre, je me sens très chaud", ar:'لدي حمى، أشعر بحرارة شديدة', ro:'Am febră, mă simt foarte fierbinte', zh:'我发烧了，感觉非常热', wo:'Dama feebar, dama tangaléen' }},
+      { icon:'🤮', texts:{ ca:'Tinc nàusees i tinc ganes de vomitar', es:'Tengo náuseas y ganas de vomitar', en:'I feel nauseous and I want to vomit', fr:"J'ai des nausées et envie de vomir", ar:'أشعر بالغثيان وأريد أن أتقيأ', ro:'Am greață și vreau să vărs', zh:'我感到恶心，想吐', wo:'Dama soxu bët, dama bëgg a ruus' }},
+      { icon:'💫', texts:{ ca:'Tinc marejos i em gira el cap constantment', es:'Tengo mareos y me da vueltas la cabeza continuamente', en:'I feel dizzy and my head keeps spinning', fr:"J'ai des vertiges et la tête qui tourne en permanence", ar:'أشعر بدوار مستمر ورأسي يدور طوال الوقت', ro:'Am amețeli și mi se învârtă capul continuu', zh:'我一直头晕，头在不停旋转', wo:'Dama wëré, dama am dëkk ci bop bi jennaak' }},
+      { icon:'😷', texts:{ ca:'Tinc tos, mucositat abundant i mal de gola', es:'Tengo tos, mucosidad abundante y dolor de garganta', en:'I have a cough, heavy congestion and a sore throat', fr:"J'ai de la toux, beaucoup de mucosités et mal à la gorge", ar:'لدي سعال واحتقان شديد وألم في الحلق', ro:'Am tuse, multă mucozitate și durere în gât', zh:'我咳嗽、鼻涕很多，喉咙也痛', wo:'Dama wax, dama am mucosité lool, xelu ci cëf bi' }},
+      { icon:'💓', texts:{ ca:'El cor em bat molt ràpid, tinc palpitacions', es:'El corazón me late muy rápido, tengo palpitaciones', en:'My heart is beating very fast, I have palpitations', fr:"Mon cœur bat très vite, j'ai des palpitations", ar:'قلبي يدق بسرعة شديدة، لدي خفقان', ro:'Inima îmi bate foarte repede, am palpitații', zh:'我的心跳非常快，有心悸感', wo:'Xol bi dafa gaaw lool, dama am palpitations' }},
+      { icon:'📅', texts:{ ca:'Fa uns dies que tinc tots aquests símptomes', es:'Llevo varios días con todos estos síntomas', en:'I have had all these symptoms for several days', fr:"J'ai tous ces symptômes depuis plusieurs jours", ar:'لدي كل هذه الأعراض منذ عدة أيام', ro:'Am toate aceste simptome de mai multe zile', zh:'我已经有好几天出现所有这些症状了', wo:'Dama am seen symptôme yi yépp ci kanam bés yu bare' }}
+    ]
+  },
+  { id:'medicacion', icon:'💊', color:'#1E72C8',
+    names:{ ca:'Medicació', es:'Medicación', en:'Medication', fr:'Médicaments', ar:'أدوية', ro:'Medicație', zh:'药物', wo:'Medicament' },
+    phrases:[
+      { icon:'🔄', texts:{ ca:'Normalment prenc aquesta medicació cada dia', es:'Normalmente tomo esta medicación todos los días', en:'I normally take this medication every day', fr:'Je prends normalement ce médicament tous les jours', ar:'أتناول هذا الدواء يومياً بشكل منتظم', ro:'Iau de obicei acest medicament în fiecare zi', zh:'我通常每天服用这种药', wo:'Dama jënd medicament bii bu bés bu nekk' }},
+      { icon:'⚠️', texts:{ ca:'Sóc al·lèrgic a alguns medicaments, cal tenir-ho en compte', es:'Soy alérgico a algunos medicamentos, hay que tenerlo en cuenta', en:'I am allergic to some medications, please take note', fr:'Je suis allergique à certains médicaments, à prendre en compte', ar:'أنا أعاني من حساسية تجاه بعض الأدوية، يرجى مراعاة ذلك', ro:'Sunt alergic la unele medicamente, trebuie luat în considerare', zh:'我对某些药物过敏，请注意这一点', wo:'Dama am allergie ci medicaments dëkk, waroon na ko xam' }},
+      { icon:'⏰', texts:{ ca:'Quan i com he de prendre la medicació que m\'han receptat?', es:'¿Cuándo y cómo debo tomar la medicación que me han recetado?', en:'When and how should I take the prescribed medication?', fr:'Quand et comment dois-je prendre les médicaments prescrits?', ar:'متى وكيف يجب أن آخذ الدواء الموصوف لي؟', ro:'Când și cum trebuie să iau medicamentul prescris?', zh:'我应该什么时候以及怎么服用处方药？', wo:'Kañ ak naka laa waroon jënd medicament bi ñu ma daaneel?' }},
+      { icon:'🍽️', texts:{ ca:'He de prendre el medicament amb menjar o amb l\'estómac buit?', es:'¿Debo tomar el medicamento con comida o con el estómago vacío?', en:'Should I take the medicine with food or on an empty stomach?', fr:'Dois-je prendre le médicament avec de la nourriture ou à jeun?', ar:'هل يجب أن آخذ الدواء مع الطعام أم على معدة فارغة؟', ro:'Trebuie să iau medicamentul cu mâncare sau pe stomacul gol?', zh:'我应该随餐服药还是空腹服药？', wo:'Maa ngi waroon jënd medicament bi ak lekk walla ci kanam?' }},
+      { icon:'❓', texts:{ ca:'Quins efectes secundaris pot tenir aquest medicament?', es:'¿Qué efectos secundarios puede tener este medicamento?', en:'What side effects can this medicine have?', fr:'Quels effets secondaires peut avoir ce médicament?', ar:'ما هي الآثار الجانبية المحتملة لهذا الدواء؟', ro:'Ce efecte secundare poate avea acest medicament?', zh:'这种药可能有什么副作用？', wo:'Ana effets secondaires yu mën am ci medicament bii?' }},
+      { icon:'🛑', texts:{ ca:'No puc prendre aquest medicament perquè em fa mal', es:'No puedo tomar este medicamento porque me sienta mal', en:'I cannot take this medicine because it makes me feel ill', fr:'Je ne peux pas prendre ce médicament car il me fait du mal', ar:'لا أستطيع تناول هذا الدواء لأنه يضرني', ro:'Nu pot lua acest medicament pentru că îmi face rău', zh:'我不能服用这种药，因为它对我不好', wo:'Mënuma jënd medicament bii ndaxte dafa ma dëkk' }}
+    ]
+  },
+  { id:'procedimientos', icon:'🔬', color:'#1E9490',
+    names:{ ca:'Procediments', es:'Procedimientos', en:'Procedures', fr:'Procédures', ar:'إجراءات', ro:'Proceduri', zh:'治疗程序', wo:'Procédures' },
+    phrases:[
+      { icon:'🤔', texts:{ ca:'Podeu explicar-me exactament què em fareu?', es:'¿Pueden explicarme exactamente qué me van a hacer?', en:'Can you explain exactly what you are going to do to me?', fr:"Pouvez-vous m'expliquer exactement ce que vous allez me faire?", ar:'هل يمكنكم شرح ما ستفعلونه لي بالضبط؟', ro:'Puteți să-mi explicați exact ce urmează să mi se facă?', zh:'你们能详细解释一下要对我做什么吗？', wo:'Mën nga ma wax ci leer lan lañu maa def?' }},
+      { icon:'😟', texts:{ ca:'Aquest procediment em farà mal? Tinc por', es:'¿Este procedimiento me va a doler? Tengo miedo', en:'Will this procedure hurt? I am scared', fr:'Cette procédure va-t-elle faire mal? J\'ai peur', ar:'هل سيؤلمني هذا الإجراء؟ أنا خائف', ro:'Va durea această procedură? Mi-e frică', zh:'这个程序会痛吗？我很害怕', wo:'Dina ma xelu procédure bii? Dama ragal' }},
+      { icon:'📋', texts:{ ca:'Necessito que m\'expliquin tot abans de donar el meu consentiment', es:'Necesito que me expliquen todo antes de dar mi consentimiento', en:'I need a full explanation before giving my consent', fr:"J'ai besoin d'une explication complète avant de donner mon accord", ar:'أحتاج إلى شرح كامل قبل إعطاء موافقتي', ro:'Am nevoie de o explicație completă înainte de a-mi da consimțământul', zh:'在我同意之前，我需要完整的解释', wo:'Maa ngi soxor explications bu weex ci kanam bi maa def accord bi' }},
+      { icon:'🍽️', texts:{ ca:'He d\'estar en dejú per a aquest procediment?', es:'¿Tengo que estar en ayunas para este procedimiento?', en:'Do I need to fast before this procedure?', fr:'Dois-je être à jeun pour cette procédure?', ar:'هل يجب أن أكون صائماً قبل هذا الإجراء؟', ro:'Trebuie să fiu pe stomacul gol pentru această procedură?', zh:'这个程序前我需要空腹吗？', wo:'Maa ngi waroon dëkk bu amul lekk ci kanam procédure bii?' }},
+      { icon:'⏳', texts:{ ca:'Quant de temps durarà aproximadament aquest procediment?', es:'¿Cuánto tiempo durará aproximadamente este procedimiento?', en:'How long will this procedure approximately take?', fr:'Combien de temps durera environ cette procédure?', ar:'كم من الوقت سيستغرق هذا الإجراء تقريباً؟', ro:'Cât timp va dura aproximativ această procedură?', zh:'这个程序大约需要多长时间？', wo:'Ñaata jamono dina am procédure bii ci kanam?' }},
+      { icon:'💉', texts:{ ca:'Hauré de quedar-me ingressat a l\'hospital?', es:'¿Tendré que quedarme ingresado en el hospital?', en:'Will I need to be admitted to the hospital?', fr:'Devrai-je être hospitalisé?', ar:'هل سأحتاج إلى الدخول إلى المستشفى؟', ro:'Va trebui să fiu internat în spital?', zh:'我需要住院吗？', wo:'Maa ngi waroon dëkk ci hôpital bi?' }}
+    ]
+  },
+  { id:'orientacion', icon:'🗺️', color:'#2A9E55',
+    names:{ ca:'Orientació', es:'Orientación', en:'Orientation', fr:'Orientation', ar:'توجيه', ro:'Orientare', zh:'导向', wo:'Orientation' },
+    phrases:[
+      { icon:'🚻', texts:{ ca:'On és el lavabo o el bany, si us plau?', es:'¿Dónde está el baño o el lavabo, por favor?', en:'Where is the bathroom or toilet, please?', fr:'Où sont les toilettes, s\'il vous plaît?', ar:'أين الحمام أو دورة المياه من فضلك؟', ro:'Unde este baia sau toaleta, vă rog?', zh:'请问洗手间或厕所在哪里？', wo:'Fan la wundi bi nekk, soxor?' }},
+      { icon:'🚪', texts:{ ca:'On és la sortida principal d\'aquest edifici?', es:'¿Dónde está la salida principal de este edificio?', en:'Where is the main exit of this building?', fr:'Où est la sortie principale de ce bâtiment?', ar:'أين المخرج الرئيسي لهذا المبنى؟', ro:'Unde este ieșirea principală a acestei clădiri?', zh:'这栋楼的主出口在哪里？', wo:'Fan la jóge bu mag bi nekk ci dëkk bi?' }},
+      { icon:'🪑', texts:{ ca:'On és la sala d\'espera on he d\'esperar el meu torn?', es:'¿Dónde está la sala de espera donde tengo que esperar mi turno?', en:'Where is the waiting room where I should wait my turn?', fr:"Où est la salle d'attente où je dois attendre mon tour?", ar:'أين غرفة الانتظار حيث يجب أن أنتظر دوري؟', ro:'Unde este sala de așteptare unde trebuie să-mi aștept rândul?', zh:'等候我的号的候诊室在哪里？', wo:'Fan la salle bi ñu xaar fi nekk?' }},
+      { icon:'💊', texts:{ ca:'On és la farmàcia de l\'hospital?', es:'¿Dónde está la farmacia del hospital?', en:'Where is the hospital pharmacy?', fr:"Où est la pharmacie de l'hôpital?", ar:'أين صيدلية المستشفى؟', ro:'Unde este farmacia spitalului?', zh:'医院药房在哪里？', wo:'Fan la pharmacie bi ci hôpital bi nekk?' }},
+      { icon:'🅿️', texts:{ ca:'On és la recepció o l\'entrada principal?', es:'¿Dónde está la recepción o la entrada principal?', en:'Where is the reception or the main entrance?', fr:"Où est la réception ou l'entrée principale?", ar:'أين الاستقبال أو المدخل الرئيسي؟', ro:'Unde este recepția sau intrarea principală?', zh:'前台或主入口在哪里？', wo:'Fan la réception walla jóge bu mag bi nekk?' }},
+      { icon:'🛏️', texts:{ ca:'On és la meva habitació? No la trobo', es:'¿Dónde está mi habitación? No la encuentro', en:'Where is my room? I cannot find it', fr:'Où est ma chambre? Je ne la trouve pas', ar:'أين غرفتي؟ لا أستطيع إيجادها', ro:'Unde este camera mea? Nu o găsesc', zh:'我的病房在哪里？我找不到', wo:'Fan la néeg baam bi nekk? Mënuma ko gëm' }}
+    ]
+  },
+  { id:'citas', icon:'📅', color:'#5055CC',
+    names:{ ca:'Cites i horaris', es:'Citas y horarios', en:'Appointments', fr:'Rendez-vous', ar:'مواعيد', ro:'Programări', zh:'预约', wo:'Rendez-vous' },
+    phrases:[
+      { icon:'📝', texts:{ ca:'Voldria demanar una cita amb el metge, si us plau', es:'Me gustaría pedir una cita con el médico, por favor', en:'I would like to make an appointment with the doctor, please', fr:'Je voudrais prendre un rendez-vous avec le médecin', ar:'أريد حجز موعد مع الطبيب من فضلك', ro:'Aș vrea să fac o programare la medic, vă rog', zh:'我想预约医生，请帮我安排', wo:'Dëgg naa soxor rendez-vous ak doktoor bi, soxor' }},
+      { icon:'🗓️', texts:{ ca:'Quan és la meva propera cita? Vull confirmar', es:'¿Cuándo es mi próxima cita? Quiero confirmarlo', en:'When is my next appointment? I want to confirm', fr:'Quand est mon prochain rendez-vous? Je veux confirmer', ar:'متى موعدي القادم؟ أريد التأكيد', ro:'Când este următoarea mea programare? Vreau să confirm', zh:'我下次预约是什么时候？我想确认一下', wo:'Kañ la rendez-vous bi mujj? Dëgg naa ko dëgël' }},
+      { icon:'⌚', texts:{ ca:'Quant de temps hauré d\'esperar avui?', es:'¿Cuánto tiempo tendré que esperar hoy?', en:'How long will I have to wait today?', fr:"Combien de temps devrai-je attendre aujourd'hui?", ar:'كم من الوقت يجب أن أنتظر اليوم؟', ro:'Cât timp va trebui să aștept astăzi?', zh:'今天我需要等多长时间？', wo:'Ñaata jamono laa waroon xaar tey?' }},
+      { icon:'❌', texts:{ ca:'Vull cancel·lar o canviar la meva cita programada', es:'Quiero cancelar o cambiar mi cita programada', en:'I want to cancel or change my scheduled appointment', fr:'Je veux annuler ou changer mon rendez-vous programmé', ar:'أريد إلغاء أو تغيير موعدي المحدد', ro:'Vreau să anulez sau să schimb programarea mea', zh:'我想取消或更改我已预约的时间', wo:'Dëgg naa annuler walla changer rendez-vous bi maa am' }},
+      { icon:'🔁', texts:{ ca:'Necessito un seguiment o una revisió de control', es:'Necesito un seguimiento o una revisión de control', en:'I need a follow-up appointment or control check', fr:"J'ai besoin d'un suivi ou d'un contrôle", ar:'أحتاج إلى موعد متابعة أو فحص دوري', ro:'Am nevoie de o programare de monitorizare sau control', zh:'我需要一次随访或复诊', wo:'Maa ngi soxor suiviment walla contrôle' }},
+      { icon:'🏠', texts:{ ca:'Com puc demanar la cita per internet o per telèfon?', es:'¿Cómo puedo pedir la cita por internet o por teléfono?', en:'How can I book an appointment online or by phone?', fr:'Comment puis-je prendre rendez-vous en ligne ou par téléphone?', ar:'كيف يمكنني حجز موعد عبر الإنترنت أو الهاتف؟', ro:'Cum pot face o programare online sau telefonic?', zh:'我怎么可以通过网络或电话预约？', wo:'Naka laa mën a soxor rendez-vous ci internet walla ci téléphone?' }}
+    ]
+  },
+  { id:'personal', icon:'👤', color:'#B5296F',
+    names:{ ca:'Informació personal', es:'Información personal', en:'Personal Info', fr:'Informations personnelles', ar:'معلومات شخصية', ro:'Informații personale', zh:'个人信息', wo:'Xibaar bu xam-xam' },
+    phrases:[
+      { icon:'🪪', texts:{ ca:'El meu nom és... i el meu cognom és...', es:'Mi nombre es... y mi apellido es...', en:'My first name is... and my surname is...', fr:"Mon prénom est... et mon nom de famille est...", ar:'اسمي الأول... واسم عائلتي...', ro:'Prenumele meu este... și numele de familie este...', zh:'我的名字是……姓是……', wo:'Maa ngi wax... ak dëkkar bi...' }},
+      { icon:'🎂', texts:{ ca:'Tinc ... anys i vaig néixer a...', es:'Tengo ... años y nací en...', en:'I am ... years old and I was born in...', fr:"J'ai ... ans et je suis né(e) à...", ar:'عمري ... سنة وُلدت في...', ro:'Am ... ani și m-am născut în...', zh:'我……岁，出生在……', wo:'Dama am ... at, dëdd naa ci...' }},
+      { icon:'🙅', texts:{ ca:'No entenc el que em dieu, podeu repetir-ho molt a poc a poc?', es:'No entiendo lo que me dicen, ¿pueden repetirlo muy despacio?', en:'I do not understand you, can you please repeat very slowly?', fr:"Je ne comprends pas ce que vous dites, pouvez-vous répéter très lentement?", ar:'لا أفهم ما تقولونه، هل يمكنكم التكرار ببطء شديد؟', ro:'Nu înțeleg ce spuneți, puteți repeta foarte rar?', zh:'我不明白你说的，你能非常慢地重复一遍吗？', wo:'Duma xam li ngeen wax, mën nga ko wëkk bu yàgg lool?' }},
+      { icon:'🏥', texts:{ ca:'Tinc targeta sanitària i assegurança mèdica activa', es:'Tengo tarjeta sanitaria y seguro médico en vigor', en:'I have a valid health card and medical insurance', fr:"J'ai une carte de santé et une assurance médicale valide", ar:'لدي بطاقة صحية وتأمين طبي ساري المفعول', ro:'Am card de sănătate și asigurare medicală valabilă', zh:'我有有效的医保卡和医疗保险', wo:'Dama am carte sanitaire ak assurance mèdical bu yëgël' }},
+      { icon:'📱', texts:{ ca:'El meu número de telèfon personal és...', es:'Mi número de teléfono personal es...', en:'My personal phone number is...', fr:'Mon numéro de téléphone personnel est...', ar:'رقم هاتفي الشخصي هو...', ro:'Numărul meu personal de telefon este...', zh:'我的个人电话号码是……', wo:'Numéro téléphone bi maa am moo...' }},
+      { icon:'✅', texts:{ ca:'Ara entenc, gràcies. Ho he entès bé', es:'Ahora entiendo, gracias. Lo he entendido bien', en:'I understand now, thank you. I have understood well', fr:"Je comprends maintenant, merci. J'ai bien compris", ar:'أنا أفهم الآن شكراً لكم، لقد فهمت جيداً', ro:'Înțeleg acum, mulțumesc. Am înțeles bine', zh:'我现在明白了，谢谢。我已经理解了', wo:'Dama xam léegi, jërejëf. Xamnaa ko bu baax' }}
+    ]
+  }
+];
+
+/* ══════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════ */
+let selectedLang = 'es';
+let currentSit = null;
+let showAllLangs = false;
+let currentPhraseIdx = null;
+let voiceCache = {};   // code → SpeechSynthesisVoice
+let voicesLoaded = false;
+
+/* ══════════════════════════════════════════════════════════
+   VOICE ENGINE — pick best available voice per language
+══════════════════════════════════════════════════════════ */
+const QUALITY_KEYWORDS = [
+  'premium','enhanced','neural','natural','wavenet','hd',
+  'google','microsoft','apple','siri','zira','david','mark','susan',
+  'samantha','karen','victoria','moira','fiona','allison'
+];
+
+function scoredVoice(v) {
+  const n = (v.name||'').toLowerCase();
+  let score = 0;
+  QUALITY_KEYWORDS.forEach(k => { if(n.includes(k)) score += 10; });
+  if(v.localService) score += 2;
+  return score;
+}
+
+function buildVoiceCache() {
+  if(!('speechSynthesis' in window)) return;
+  const all = window.speechSynthesis.getVoices();
+  if(!all.length) return;
+  voiceCache = {};
+  LANGS.forEach(lang => {
+    let best = null, bestScore = -1;
+    lang.locales.forEach(loc => {
+      all.filter(v => v.lang === loc || v.lang.startsWith(loc.split('-')[0]))
+         .forEach(v => {
+           const s = scoredVoice(v);
+           if(s > bestScore) { bestScore = s; best = v; }
+         });
+    });
+    if(best) voiceCache[lang.code] = best;
+  });
+  voicesLoaded = true;
+  updateVoiceBadge();
+}
+
+if('speechSynthesis' in window) {
+  buildVoiceCache();
+  window.speechSynthesis.onvoiceschanged = buildVoiceCache;
+}
+
+function getVoiceInfo(code) {
+  const v = voiceCache[code];
+  if(!v) return { label:'Voz del sistema', quality:'warn' };
+  const n = v.name||'';
+  const isHQ = QUALITY_KEYWORDS.some(k => n.toLowerCase().includes(k));
+  return { label: n, quality: isHQ ? 'good' : 'warn' };
+}
+
+function updateVoiceBadge() {
+  const el = document.getElementById('voiceBadge');
+  if(!el) return;
+  const info = getVoiceInfo(selectedLang);
+  el.innerHTML = `<span class="voice-dot ${info.quality==='good'?'':'warn'}"></span>${info.label}`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   INIT & RENDER
+══════════════════════════════════════════════════════════ */
+function init() {
+  renderDesktopSidebar();
+  renderMobileLangGrid();
+  renderCategories();
+}
+
+function renderDesktopSidebar() {
+  // lang grid (2 cols)
+  document.getElementById('desktopLangGrid').innerHTML = LANGS.map(l =>
+    `<button class="lang-btn ${l.code===selectedLang?'active':''}" onclick="selectLang('${l.code}','desktop')">
+      <span class="flag">${l.flag}</span>
+      <span class="lname">${l.name}</span>
+    </button>`).join('');
+  // categories
+  document.getElementById('desktopSidebarCats').innerHTML = SITUATIONS.map(s =>
+    `<div class="sidebar-cat ${currentSit&&currentSit.id===s.id?'active':''}"
+         style="${currentSit&&currentSit.id===s.id?'border-left-color:'+s.color:''}"
+         onclick="openSituation('${s.id}')">
+       <span class="sidebar-cat-icon">${s.icon}</span>
+       <div>
+         <div class="sidebar-cat-name" style="color:${s.color}">${s.names.es}</div>
+         <div class="sidebar-cat-sub">${s.names[selectedLang]}</div>
+       </div>
+     </div>`).join('');
+}
+
+function renderMobileLangGrid() {
+  document.getElementById('mobileLangGrid').innerHTML = LANGS.map(l =>
+    `<button class="lang-btn ${l.code===selectedLang?'active':''}" onclick="selectLang('${l.code}','mobile')">
+      <span class="flag">${l.flag}</span>
+      <span class="lname">${l.name}</span>
+    </button>`).join('');
+}
+
+function renderCategories() {
+  document.getElementById('categoriesGrid').innerHTML = SITUATIONS.map(s => {
+    const sub = selectedLang!=='es' ? `<div class="cat-sublang">${s.names[selectedLang]}</div>` : '';
+    return `<div class="category-card" style="border-top-color:${s.color}" onclick="openSituation('${s.id}')">
+      <span class="cat-badge">${s.phrases.length}</span>
+      <span class="cat-icon">${s.icon}</span>
+      <div class="cat-name">${s.names.es}</div>
+      ${sub}
+    </div>`;
+  }).join('');
+}
+
+function selectLang(code, from) {
+  selectedLang = code;
+  renderDesktopSidebar();
+  renderMobileLangGrid();
+  renderCategories();
+  const l = LANGS.find(x=>x.code===code);
+  document.getElementById('infoBarText').textContent = `Idioma seleccionado: ${l.flag} ${l.name}`;
+  if(currentSit) renderPhraseCards();
+}
+
+function openSituation(id) {
+  currentSit = SITUATIONS.find(s=>s.id===id);
+  renderPhraseCards();
+  renderDesktopSidebar();
+  showView('phrasesView');
+  document.getElementById('backBtn').classList.add('visible');
+}
+
+function renderPhraseCards() {
+  const s = currentSit;
+  const l = LANGS.find(x=>x.code===selectedLang);
+  document.getElementById('phrasesHeader').innerHTML =
+    `<span class="cat-big-icon">${s.icon}</span>
+     <div>
+       <h2 style="color:${s.color}">${s.names.es}</h2>
+       <div class="cat-desc">${l.flag} ${s.names[selectedLang]} · ${l.name}</div>
+       <div class="cat-desc" style="margin-top:4px">👆 Toca una frase para ver y escuchar</div>
+     </div>`;
+
+  document.getElementById('phrasesList').innerHTML = s.phrases.map((p,i) => {
+    const isRTL = selectedLang==='ar';
+    return `<div class="phrase-card" style="border-left-color:${s.color}" onclick="openPhrase(${i})">
+      <span class="phrase-icon">${p.icon}</span>
+      <div class="phrase-texts">
+        <div class="phrase-es">${p.texts.es}</div>
+        <div class="phrase-lang${isRTL?' rtl':''}">${p.texts[selectedLang]}</div>
+      </div>
+      <span class="phrase-arrow">▶</span>
+    </div>`;
+  }).join('');
+}
+
+function openPhrase(idx) {
+  currentPhraseIdx = idx;
+  showAllLangs = false;
+  renderModalContent();
+  document.getElementById('detailOverlay').style.display = 'flex';
+}
+
+function renderModalContent() {
+  const p = currentSit.phrases[currentPhraseIdx];
+  const l = LANGS.find(x=>x.code===selectedLang);
+  const isRTL = selectedLang==='ar';
+  const vi = getVoiceInfo(selectedLang);
+
+  const allLangsHTML = showAllLangs ? `
+    <div class="all-langs-list">
+      ${LANGS.map(lg=>`
+        <div class="lang-row">
+          <span class="lang-row-flag">${lg.flag}</span>
+          <div class="lang-row-info">
+            <div class="lang-row-name">${lg.name}</div>
+            <div class="lang-row-text${lg.code==='ar'?' rtl':''}">${p.texts[lg.code]}</div>
+          </div>
+          <button class="lang-audio" id="audio-${lg.code}"
+            onclick="speakLang('${lg.code}',${currentPhraseIdx},'audio-${lg.code}')">🔊</button>
+        </div>`).join('')}
+    </div>` : '';
+
+  const esBlock = selectedLang!=='es' ? `
+    <div class="modal-es">
+      <div class="modal-label">🇪🇸 Español — referencia profesional</div>
+      <div class="modal-es-text">${p.texts.es}</div>
+    </div>` : '';
+
+  document.getElementById('modalContent').innerHTML = `
+    <span class="modal-icon">${p.icon}</span>
+    ${esBlock}
+    <div class="modal-lang-section" style="border-color:${currentSit.color}">
+      <div class="modal-lang-label" style="color:${currentSit.color}">${l.flag} ${l.name}</div>
+      <div class="modal-lang-text${isRTL?' rtl':''}">${p.texts[selectedLang]}</div>
+    </div>
+    <div class="voice-badge" id="voiceBadge">
+      <span class="voice-dot ${vi.quality==='good'?'':'warn'}"></span>${vi.label}
+    </div>
+    <button class="audio-btn" id="mainAudioBtn" onclick="speakMain(${currentPhraseIdx})">
+      🔊 &nbsp;Escuchar en ${l.name}
+    </button>
+    <button class="all-langs-btn" onclick="toggleAllLangs()">
+      ${showAllLangs?'🔼 Ocultar todos los idiomas':'🌐 Ver en todos los idiomas'}
+    </button>
+    ${allLangsHTML}
+  `;
+}
+
+function toggleAllLangs() {
+  showAllLangs = !showAllLangs;
+  renderModalContent();
+}
+
+/* ══════════════════════════════════════════════════════════
+   SPEECH — smart voice picker
+══════════════════════════════════════════════════════════ */
+function speakWithVoice(text, langCode, btnEl, isMain) {
+  if(!('speechSynthesis' in window)) {
+    alert('Tu navegador no soporta síntesis de voz.');
+    return;
+  }
+
+  // force voices load on iOS (they load lazily)
+  if(!voicesLoaded) buildVoiceCache();
+
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+
+  // Use best cached voice, or fall back to BCP-47 locale
+  const cached = voiceCache[langCode];
+  if(cached) {
+    utt.voice = cached;
+    utt.lang = cached.lang;
+  } else {
+    const langObj = LANGS.find(x=>x.code===langCode);
+    utt.lang = langObj ? langObj.locales[0] : langCode;
+  }
+
+  utt.rate = 0.78;
+  utt.pitch = 1.0;
+
+  const originalHtml = btnEl ? btnEl.innerHTML : null;
+  if(btnEl) {
+    btnEl.classList.add('playing');
+    if(isMain) btnEl.innerHTML = '🔊 Reproduciendo...';
+  }
+
+  utt.onend = () => {
+    if(btnEl){ btnEl.classList.remove('playing'); if(originalHtml) btnEl.innerHTML = originalHtml; }
+  };
+  utt.onerror = (e) => {
+    console.warn('TTS error', e);
+    if(btnEl){ btnEl.classList.remove('playing'); btnEl.classList.add('error');
+      setTimeout(()=>{ btnEl.classList.remove('error'); if(originalHtml) btnEl.innerHTML = originalHtml; },2000); }
+  };
+
+  // iOS Chrome workaround: small delay
+  setTimeout(() => { window.speechSynthesis.speak(utt); }, 80);
+}
+
+function speakMain(idx) {
+  const p = currentSit.phrases[idx];
+  const btn = document.getElementById('mainAudioBtn');
+  speakWithVoice(p.texts[selectedLang], selectedLang, btn, true);
+}
+
+function speakLang(code, idx, btnId) {
+  const p = currentSit.phrases[idx];
+  const btn = document.getElementById(btnId);
+  speakWithVoice(p.texts[code], code, btn, false);
+}
+
+/* ══════════════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════════════ */
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goBack() {
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  if(document.getElementById('detailOverlay').style.display!=='none'){ closeDetail(); return; }
+  currentSit = null;
+  renderDesktopSidebar();
+  showView('homeView');
+  document.getElementById('backBtn').classList.remove('visible');
+}
+
+function closeDetail() {
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  document.getElementById('detailOverlay').style.display='none';
+}
+
+function handleOverlayClick(e) {
+  if(e.target.id==='detailOverlay') closeDetail();
+}
+
+/* ── START ── */
+init();
+</script>
+</body>
+</html>
